@@ -185,4 +185,4 @@ Support data-driven decision making
 
 Transform reactive support into proactive intelligence
 
-Show what the dashboard looks like.
+Show what the dashboard looks like. https://github.com/ChauhanS8236/Simulated-Customer-Support-Cases-for-Zepto-Hair-and-Hygiene-Products/blob/main/Support%20Cases.png
