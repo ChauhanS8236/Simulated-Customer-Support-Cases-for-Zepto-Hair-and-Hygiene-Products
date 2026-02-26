@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zepto Support — Visual Findings</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --ink: #0f0e17;
+    --paper: #fffcf5;
+    --paper2: #f5f0e8;
+    --rule: #e0d8cc;
+    --red: #e63946;
+    --orange: #f4845f;
+    --yellow: #f7b731;
+    --green: #2ec4b6;
+    --blue: #264653;
+    --purple: #6b4fbb;
+    --teal: #2a9d8f;
+    --accent: #e63946;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Outfit', sans-serif;
+    font-weight: 400;
+  }
+
+  /* Grain texture overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* MASTHEAD */
+  .masthead {
+    border-bottom: 3px solid var(--ink);
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .masthead-top {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid var(--ink);
+  }
+
+  .masthead-label {
+    padding: 10px 20px;
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--paper);
+    background: var(--ink);
+    display: flex;
+    align-items: center;
+  }
+
+  .masthead-date {
+    padding: 10px 20px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-right: 1px solid var(--ink);
+  }
+
+  .ticker {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 32px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .ticker-item { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .ticker-item .val { font-weight: 700; }
+  .ticker-item .up { color: var(--teal); }
+  .ticker-item .dn { color: var(--red); }
+
+  .masthead-hero {
+    padding: 32px 40px;
+    display: flex;
+    align-items: flex-end;
+    gap: 40px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .masthead-hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(42px, 7vw, 88px);
+    font-weight: 900;
+    line-height: 0.92;
+    letter-spacing: -2px;
+    flex: 1;
+  }
+
+  .masthead-hero h1 em {
+    font-style: normal;
+    color: var(--red);
+    -webkit-text-stroke: 0px;
+  }
+
+  .masthead-deck {
+    max-width: 320px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #444;
+    border-left: 3px solid var(--red);
+    padding-left: 16px;
+  }
+
+  /* SECTION LABELS */
+  .section-rule {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 48px 0 24px;
+  }
+
+  .section-rule .sr-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-weight: 700;
+    background: var(--ink);
+    color: var(--paper);
+    padding: 2px 10px;
+    border-radius: 2px;
+  }
+
+  .section-rule .sr-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .section-rule::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  /* CHART GRID */
+  .page { max-width: 1280px; margin: 0 auto; padding: 0 40px 60px; }
+
+  .chart-row { display: grid; gap: 24px; margin-bottom: 24px; }
+  .col-2 { grid-template-columns: 1fr 1fr; }
+  .col-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .col-32 { grid-template-columns: 3fr 2fr; }
+  .col-23 { grid-template-columns: 2fr 3fr; }
+
+  /* CHART CARDS */
+  .chart-card {
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 3px 3px 0 var(--rule);
+    transition: box-shadow 0.2s, transform 0.2s;
+  }
+
+  .chart-card:hover {
+    box-shadow: 6px 6px 0 #d0c8bc;
+    transform: translate(-2px, -2px);
+  }
+
+  .card-header {
+    padding: 16px 20px 12px;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .card-header-left {}
+
+  .chart-eyebrow {
+    font-size: 9px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #999;
+    margin-bottom: 4px;
+  }
+
+  .chart-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .chart-insight {
+    font-size: 11px;
+    color: #777;
+    line-height: 1.5;
+    max-width: 200px;
+    text-align: right;
+    border-left: 2px solid var(--rule);
+    padding-left: 10px;
+  }
+
+  .chart-insight strong { color: var(--red); display: block; font-size: 13px; }
+
+  .card-body {
+    padding: 20px;
+    position: relative;
+  }
+
+  canvas { display: block; }
+
+  /* STAT CALLOUTS */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 3px 3px 0 var(--rule);
+    margin-bottom: 24px;
+  }
+
+  .stat-cell {
+    padding: 24px 20px;
+    border-right: 1px solid var(--rule);
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stat-cell:last-child { border-right: none; }
+
+  .stat-cell::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--cell-color, var(--ink));
+  }
+
+  .stat-eyebrow {
+    font-size: 9px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: #999;
+    margin-bottom: 8px;
+  }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 48px;
+    font-weight: 900;
+    line-height: 1;
+    color: var(--cell-color, var(--ink));
+  }
+
+  .stat-desc {
+    font-size: 12px;
+    color: #666;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  /* LEGEND CHIPS */
+  .legend-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 12px 20px;
+    border-top: 1px solid var(--rule);
+    background: var(--paper2);
+  }
+
+  .chip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+  }
+
+  .chip-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  /* HEATMAP */
+  .heatmap {
+    display: grid;
+    grid-template-columns: 130px repeat(5, 1fr);
+    gap: 4px;
+    font-size: 11px;
+  }
+
+  .hm-header {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #999;
+    text-align: center;
+    padding: 4px;
+  }
+
+  .hm-label {
+    font-size: 11px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+    padding-right: 8px;
+  }
+
+  .hm-cell {
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 12px;
+    height: 38px;
+    transition: transform 0.15s;
+    cursor: default;
+  }
+
+  .hm-cell:hover { transform: scale(1.08); z-index: 2; position: relative; }
+
+  /* ANIMATIONS */
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .chart-card, .stat-row {
+    animation: slideUp 0.5s ease both;
+  }
+
+  footer {
+    border-top: 3px solid var(--ink);
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #888;
+    background: var(--paper);
+  }
+
+  footer strong { color: var(--ink); }
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<div class="masthead">
+  <div class="masthead-top">
+    <div class="masthead-label">Zepto · Support Intelligence</div>
+    <div class="masthead-date">
+      <span>Jan 3 – Feb 7, 2025</span>
+      <span>|</span>
+      <span>25 Cases · 2 Categories</span>
+    </div>
+    <div class="ticker">
+      <div class="ticker-item">Resolution Rate <span class="val up">76%</span></div>
+      <div class="ticker-item">Avg CSAT <span class="val">3.76 / 5</span></div>
+      <div class="ticker-item">Critical Cases <span class="val dn">2</span></div>
+      <div class="ticker-item">Escalated <span class="val dn">3</span></div>
+      <div class="ticker-item">Hair Care <span class="val">13 cases</span></div>
+      <div class="ticker-item">Hygiene <span class="val">12 cases</span></div>
+    </div>
+  </div>
+  <div class="masthead-hero">
+    <h1>Customer<br>Support<br><em>Visual</em><br>Findings</h1>
+    <div class="masthead-deck">
+      A data-driven breakdown of 25 Zepto support cases across Hair Care and Personal Hygiene. Charts reveal fulfillment failures, CSAT patterns, priority distributions, and root cause origins — to guide operational improvement.
+    </div>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- STAT ROW -->
+  <div class="section-rule">
+    <span class="sr-num">§1</span>
+    <span class="sr-title">Key Performance Indicators</span>
+  </div>
+
+  <div class="stat-row">
+    <div class="stat-cell" style="--cell-color:#264653">
+      <div class="stat-eyebrow">Total Cases Filed</div>
+      <div class="stat-num">25</div>
+      <div class="stat-desc">Across Hair Care &amp; Personal Hygiene categories</div>
+    </div>
+    <div class="stat-cell" style="--cell-color:#2ec4b6">
+      <div class="stat-eyebrow">Resolution Rate</div>
+      <div class="stat-num">76%</div>
+      <div class="stat-desc">19 of 25 cases fully resolved by support team</div>
+    </div>
+    <div class="stat-cell" style="--cell-color:#f7b731">
+      <div class="stat-eyebrow">Average CSAT</div>
+      <div class="stat-num">3.76</div>
+      <div class="stat-desc">Out of 5 — pulled down by 3 critical escalations</div>
+    </div>
+    <div class="stat-cell" style="--cell-color:#e63946">
+      <div class="stat-eyebrow">Escalated Cases</div>
+      <div class="stat-num">3</div>
+      <div class="stat-desc">Allergic reactions &amp; counterfeit concern — all scored 2.0 CSAT</div>
+    </div>
+  </div>
+
+  <!-- SECTION 2 — CHARTS ROW 1 -->
+  <div class="section-rule">
+    <span class="sr-num">§2</span>
+    <span class="sr-title">Issue Distribution &amp; Priority</span>
+  </div>
+
+  <div class="chart-row col-32">
+    <!-- Horizontal Bar — Issue Themes -->
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="chart-eyebrow">Frequency Analysis</div>
+          <div class="chart-title">Issue Themes by Case Count</div>
+        </div>
+        <div class="chart-insight">
+          <strong>32% Fulfillment</strong>
+          Wrong items & missing orders dominate — a warehouse problem
+        </div>
+      </div>
+      <div class="card-body">
+        <canvas id="issueBar" height="220"></canvas>
+      </div>
+      <div class="legend-chips">
+        <div class="chip"><span class="chip-dot" style="background:#264653"></span>Fulfillment Errors</div>
+        <div class="chip"><span class="chip-dot" style="background:#e63946"></span>Packaging / Transit</div>
+        <div class="chip"><span class="chip-dot" style="background:#6b4fbb"></span>App & Billing</div>
+        <div class="chip"><span class="chip-dot" style="background:#f4845f"></span>Product Quality</div>
+        <div class="chip"><span class="chip-dot" style="background:#f7b731"></span>Listing Accuracy</div>
+        <div class="chip"><span class="chip-dot" style="background:#c0392b"></span>Safety</div>
+      </div>
+    </div>
+
+    <!-- Doughnut — Priority -->
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="chart-eyebrow">Severity Assessment</div>
+          <div class="chart-title">Priority Breakdown</div>
+        </div>
+        <div class="chart-insight">
+          <strong>52% High or Critical</strong>
+          More than half of all cases require urgent action
+        </div>
+      </div>
+      <div class="card-body" style="display:flex;align-items:center;justify-content:center;">
+        <canvas id="priorityDonut" width="260" height="260"></canvas>
+      </div>
+      <div class="legend-chips">
+        <div class="chip"><span class="chip-dot" style="background:#e63946"></span>Critical (8%)</div>
+        <div class="chip"><span class="chip-dot" style="background:#f4845f"></span>High (44%)</div>
+        <div class="chip"><span class="chip-dot" style="background:#f7b731"></span>Medium (40%)</div>
+        <div class="chip"><span class="chip-dot" style="background:#2ec4b6"></span>Low (8%)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 3 — CSAT -->
+  <div class="section-rule">
+    <span class="sr-num">§3</span>
+    <span class="sr-title">Customer Satisfaction Analysis</span>
+  </div>
+
+  <div class="chart-row col-2">
+
+    <!-- CSAT Distribution Bar -->
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="chart-eyebrow">Satisfaction Scores</div>
+          <div class="chart-title">CSAT Score Distribution</div>
+        </div>
+        <div class="chart-insight">
+          <strong>68% rated 4–5 ★</strong>
+          Good resolution quality when issues get addressed promptly
+        </div>
+      </div>
+      <div class="card-body">
+        <canvas id="csatDist" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- CSAT by Priority -->
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="chart-eyebrow">Satisfaction by Severity</div>
+          <div class="chart-title">Avg. CSAT by Priority Level</div>
+        </div>
+        <div class="chart-insight">
+          <strong>Critical = 2.0 ★</strong>
+          Safety &amp; authenticity cases devastate satisfaction scores
+        </div>
+      </div>
+      <div class="card-body">
+        <canvas id="csatPriority" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 4 — Root causes & Status -->
+  <div class="section-rule">
+    <span class="sr-num">§4</span>
+    <span class="sr-title">Root Cause Origins &amp; Resolution Status</span>
+  </div>
+
+  <div class="chart-row col-23">
+
+    <!-- Status Pie -->
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="chart-eyebrow">Case Lifecycle</div>
+          <div class="chart-title">Resolution Status</div>
+        </div>
+        <div class="chart-insight">
+          <strong>12% Escalated</strong>
+          Still open and requiring leadership attention
+        </div>
+      </div>
+      <div class="card-body" style="display:flex;align-items:center;justify-content:center;">
+        <canvas id="statusPie" width="240" height="240"></canvas>
+      </div>
+      <div class="legend-chips">
+        <div class="chip"><span class="chip-dot" style="background:#2ec4b6"></span>Resolved (76%)</div>
+        <div class="chip"><span class="chip-dot" style="background:#264653"></span>Closed (12%)</div>
+        <div class="chip"><span class="chip-dot" style="background:#e63946"></span>Escalated (12%)</div>
+      </div>
+    </div>
+
+    <!-- Root Cause Horizontal Bar -->
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="chart-eyebrow">Operational Diagnosis</div>
+          <div class="chart-title">Root Cause by Origin</div>
+        </div>
+        <div class="chart-insight">
+          <strong>Warehouse #1</strong>
+          Fulfillment center is the primary source of customer pain
+        </div>
+      </div>
+      <div class="card-body">
+        <canvas id="rootCause" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 5 — Category + Timeline -->
+  <div class="section-rule">
+    <span class="sr-num">§5</span>
+    <span class="sr-title">Category Comparison &amp; Issue Heatmap</span>
+  </div>
+
+  <div class="chart-row col-2">
+
+    <!-- Radar — Category Profile -->
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="chart-eyebrow">Category Comparison</div>
+          <div class="chart-title">Hair Care vs. Hygiene — Issue Profile</div>
+        </div>
+        <div class="chart-insight">
+          <strong>Similar profiles</strong>
+          Both categories share fulfillment & packaging as top pain points
+        </div>
+      </div>
+      <div class="card-body" style="display:flex;align-items:center;justify-content:center;">
+        <canvas id="radarChart" width="340" height="300"></canvas>
+      </div>
+      <div class="legend-chips">
+        <div class="chip"><span class="chip-dot" style="background:#264653"></span>Hair Care (13 cases)</div>
+        <div class="chip"><span class="chip-dot" style="background:#e63946"></span>Personal Hygiene (12 cases)</div>
+      </div>
+    </div>
+
+    <!-- Heatmap — Issue × CSAT -->
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="chart-eyebrow">Sentiment Map</div>
+          <div class="chart-title">Issue Type × CSAT Score Heatmap</div>
+        </div>
+        <div class="chart-insight">
+          <strong>Safety = 2.0 ★</strong>
+          The lowest-scoring issue type by far — demands priority treatment
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="heatmap" id="heatmap"></div>
+      </div>
+      <div class="legend-chips">
+        <div class="chip"><span class="chip-dot" style="background:#e63946"></span>Low CSAT (≤2)</div>
+        <div class="chip"><span class="chip-dot" style="background:#f4845f"></span>Below Avg (3)</div>
+        <div class="chip"><span class="chip-dot" style="background:#f7b731"></span>Good (3.5–4)</div>
+        <div class="chip"><span class="chip-dot" style="background:#2ec4b6"></span>Excellent (5)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 6 — Timeline -->
+  <div class="section-rule">
+    <span class="sr-num">§6</span>
+    <span class="sr-title">Case Volume Over Time</span>
+  </div>
+
+  <div class="chart-row">
+    <div class="chart-card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="chart-eyebrow">January–February 2025</div>
+          <div class="chart-title">Weekly Case Volume by Priority</div>
+        </div>
+        <div class="chart-insight">
+          <strong>Late Jan surge</strong>
+          Volume peaked in the final two weeks of January
+        </div>
+      </div>
+      <div class="card-body">
+        <canvas id="timeline" height="140"></canvas>
+      </div>
+      <div class="legend-chips">
+        <div class="chip"><span class="chip-dot" style="background:#e63946"></span>Critical</div>
+        <div class="chip"><span class="chip-dot" style="background:#f4845f"></span>High</div>
+        <div class="chip"><span class="chip-dot" style="background:#f7b731"></span>Medium</div>
+        <div class="chip"><span class="chip-dot" style="background:#2ec4b6"></span>Low</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <span><strong>Zepto Customer Support Intelligence</strong> · Visual Findings Report</span>
+  <span>25 Cases Analyzed · Jan 3 – Feb 7, 2025 · Generated by Claude AI</span>
+  <span>Hair Care &amp; Personal Hygiene</span>
+</footer>
+
+<script>
+// ── CHART DEFAULTS ──────────────────────────────────
+Chart.defaults.font.family = "'Outfit', sans-serif";
+Chart.defaults.color = '#555';
+
+const palette = {
+  ink: '#0f0e17',
+  red: '#e63946',
+  orange: '#f4845f',
+  yellow: '#f7b731',
+  green: '#2ec4b6',
+  blue: '#264653',
+  purple: '#6b4fbb',
+  teal: '#2a9d8f',
+};
+
+// ── 1. ISSUE THEMES HORIZONTAL BAR ──────────────────
+new Chart(document.getElementById('issueBar'), {
+  type: 'bar',
+  data: {
+    labels: ['Fulfillment Errors', 'Packaging & Transit', 'App & Billing Bugs', 'Product Quality', 'Listing Accuracy', 'Safety / Adverse'],
+    datasets: [{
+      data: [8, 5, 4, 3, 2, 3],
+      backgroundColor: [palette.blue, palette.red, palette.purple, palette.orange, palette.yellow, '#c0392b'],
+      borderRadius: 3,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.raw} cases (${Math.round(ctx.raw/25*100)}%)`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: '#f0ece4' },
+        border: { color: '#ddd' },
+        ticks: { stepSize: 2 },
+        max: 10,
+      },
+      y: {
+        grid: { display: false },
+        border: { display: false },
+        ticks: { font: { size: 12 } }
+      }
+    }
+  }
+});
+
+// ── 2. PRIORITY DOUGHNUT ────────────────────────────
+new Chart(document.getElementById('priorityDonut'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Critical', 'High', 'Medium', 'Low'],
+    datasets: [{
+      data: [2, 11, 10, 2],
+      backgroundColor: [palette.red, palette.orange, palette.yellow, palette.green],
+      borderColor: '#fff',
+      borderWidth: 3,
+      hoverOffset: 8,
+    }]
+  },
+  options: {
+    cutout: '62%',
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.label}: ${ctx.raw} cases (${Math.round(ctx.raw/25*100)}%)`
+        }
+      }
+    }
+  }
+});
+
+// ── 3. CSAT DISTRIBUTION ────────────────────────────
+new Chart(document.getElementById('csatDist'), {
+  type: 'bar',
+  data: {
+    labels: ['★★★★★  5', '★★★★  4', '★★★  3', '★★  2'],
+    datasets: [{
+      label: 'Cases',
+      data: [5, 12, 5, 3],
+      backgroundColor: [palette.teal, palette.green, palette.yellow, palette.red],
+      borderRadius: 4,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.raw} cases — ${Math.round(ctx.raw/25*100)}% of total`
+        }
+      }
+    },
+    scales: {
+      y: {
+        grid: { color: '#f0ece4' },
+        border: { color: '#ddd' },
+        ticks: { stepSize: 2 },
+        beginAtZero: true,
+      },
+      x: {
+        grid: { display: false },
+        border: { display: false },
+        ticks: { font: { size: 11 } }
+      }
+    }
+  }
+});
+
+// ── 4. CSAT BY PRIORITY ────────────────────────────
+new Chart(document.getElementById('csatPriority'), {
+  type: 'bar',
+  data: {
+    labels: ['Critical', 'Low', 'Medium', 'High'],
+    datasets: [{
+      label: 'Avg CSAT',
+      data: [2.0, 3.5, 3.9, 4.0],
+      backgroundColor: [palette.red, palette.green, palette.yellow, palette.orange],
+      borderRadius: 4,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` Avg CSAT: ${ctx.raw} / 5`
+        }
+      }
+    },
+    scales: {
+      y: {
+        min: 0, max: 5,
+        grid: { color: '#f0ece4' },
+        border: { color: '#ddd' },
+        ticks: {
+          stepSize: 1,
+          callback: v => v + ' ★'
+        }
+      },
+      x: {
+        grid: { display: false },
+        border: { display: false },
+      }
+    }
+  }
+});
+
+// ── 5. STATUS PIE ──────────────────────────────────
+new Chart(document.getElementById('statusPie'), {
+  type: 'pie',
+  data: {
+    labels: ['Resolved', 'Closed', 'Escalated'],
+    datasets: [{
+      data: [19, 3, 3],
+      backgroundColor: [palette.green, palette.blue, palette.red],
+      borderColor: '#fff',
+      borderWidth: 3,
+      hoverOffset: 6,
+    }]
+  },
+  options: {
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.label}: ${ctx.raw} (${Math.round(ctx.raw/25*100)}%)`
+        }
+      }
+    }
+  }
+});
+
+// ── 6. ROOT CAUSE BAR ──────────────────────────────
+new Chart(document.getElementById('rootCause'), {
+  type: 'bar',
+  data: {
+    labels: ['Warehouse / Fulfillment', 'Packaging Quality', 'App / Tech Bugs', 'Supplier / Product QC', 'Catalog / Listings', 'Safety / Adverse Events'],
+    datasets: [{
+      data: [8, 5, 4, 4, 3, 2],
+      backgroundColor: [palette.blue, palette.orange, palette.purple, palette.yellow, palette.teal, palette.red],
+      borderRadius: 3,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ` ${ctx.raw} cases`
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: '#f0ece4' },
+        border: { color: '#ddd' },
+        max: 10,
+      },
+      y: {
+        grid: { display: false },
+        border: { display: false },
+        ticks: { font: { size: 11 } }
+      }
+    }
+  }
+});
+
+// ── 7. RADAR CHART ────────────────────────────────
+new Chart(document.getElementById('radarChart'), {
+  type: 'radar',
+  data: {
+    labels: ['Fulfillment', 'Packaging', 'App/Billing', 'Product Quality', 'Safety', 'Listing Issues'],
+    datasets: [
+      {
+        label: 'Hair Care',
+        data: [5, 2, 2, 3, 1, 1],
+        borderColor: palette.blue,
+        backgroundColor: 'rgba(38,70,83,0.15)',
+        borderWidth: 2,
+        pointBackgroundColor: palette.blue,
+        pointRadius: 4,
+      },
+      {
+        label: 'Personal Hygiene',
+        data: [3, 3, 2, 1, 2, 2],
+        borderColor: palette.red,
+        backgroundColor: 'rgba(230,57,70,0.12)',
+        borderWidth: 2,
+        pointBackgroundColor: palette.red,
+        pointRadius: 4,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    scales: {
+      r: {
+        beginAtZero: true,
+        max: 6,
+        ticks: { stepSize: 2, font: { size: 9 }, display: false },
+        grid: { color: '#e8e0d4' },
+        angleLines: { color: '#e0d8cc' },
+        pointLabels: { font: { size: 11, weight: '500' }, color: '#444' }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+    }
+  }
+});
+
+// ── 8. HEATMAP (manual) ──────────────────────────
+const heatmapEl = document.getElementById('heatmap');
+const heatData = [
+  { label: 'Safety Issues',    scores: [2.0], count: 3, avg: 2.0 },
+  { label: 'Efficacy / Desc.', scores: [3.0], count: 2, avg: 3.0 },
+  { label: 'Pkg Tamper/Defect',scores: [3.0], count: 3, avg: 3.0 },
+  { label: 'App & Billing',    scores: [3.9], count: 4, avg: 3.9 },
+  { label: 'Delivery Issues',  scores: [4.0], count: 2, avg: 4.0 },
+  { label: 'Pkg Damage',       scores: [4.0], count: 5, avg: 4.0 },
+  { label: 'Fulfillment Err.', scores: [4.75],count: 8, avg: 4.75 },
+];
+
+function csatColor(v) {
+  if (v <= 2) return { bg: '#fde8ea', color: '#c0392b', opacity: 1 };
+  if (v <= 3) return { bg: '#fef3e2', color: '#d68910', opacity: 1 };
+  if (v <= 4) return { bg: '#eafaf5', color: '#1e8449', opacity: 1 };
+  return { bg: '#d5f5e3', color: '#0e6655', opacity: 1 };
+}
+
+function csatLabel(v) {
+  if (v <= 2) return '😠';
+  if (v <= 3) return '😐';
+  if (v <= 4) return '🙂';
+  return '😊';
+}
+
+// Headers
+['', '★ Score', 'Cases', 'Severity', 'Trend', 'Action'].forEach(h => {
+  const d = document.createElement('div');
+  d.className = 'hm-header';
+  d.textContent = h;
+  heatmapEl.appendChild(d);
+});
+
+const actionMap = {
+  'Safety Issues': ['Escalate', '#e63946'],
+  'Efficacy / Desc.': ['Update Listings', '#6b4fbb'],
+  'Pkg Tamper/Defect': ['QC Review', '#f4845f'],
+  'App & Billing': ['Tech Sprint', '#6b4fbb'],
+  'Delivery Issues': ['Ops Review', '#f7b731'],
+  'Pkg Damage': ['Repackage', '#f4845f'],
+  'Fulfillment Err.': ['Scan-Verify', '#264653'],
+};
+
+heatData.forEach(row => {
+  const { bg, color } = csatColor(row.avg);
+
+  const label = document.createElement('div');
+  label.className = 'hm-label';
+  label.textContent = row.label;
+  heatmapEl.appendChild(label);
+
+  // Score cell
+  const scoreCell = document.createElement('div');
+  scoreCell.className = 'hm-cell';
+  scoreCell.style.cssText = `background:${bg};color:${color};font-size:14px;`;
+  scoreCell.textContent = row.avg.toFixed(1) + ' ★';
+  heatmapEl.appendChild(scoreCell);
+
+  // Count cell
+  const countCell = document.createElement('div');
+  countCell.className = 'hm-cell';
+  countCell.style.cssText = `background:#f5f0e8;color:#555;`;
+  countCell.textContent = row.count;
+  heatmapEl.appendChild(countCell);
+
+  // Severity emoji
+  const sevCell = document.createElement('div');
+  sevCell.className = 'hm-cell';
+  sevCell.style.cssText = `background:#f5f0e8;font-size:16px;`;
+  sevCell.textContent = csatLabel(row.avg);
+  heatmapEl.appendChild(sevCell);
+
+  // Mini bar
+  const barCell = document.createElement('div');
+  barCell.className = 'hm-cell';
+  barCell.style.cssText = `background:#f5f0e8;padding:0 8px;`;
+  const pct = Math.round((row.avg/5)*100);
+  barCell.innerHTML = `<div style="width:100%;height:6px;background:#e8e0d4;border-radius:3px;overflow:hidden"><div style="width:${pct}%;height:100%;background:${color};border-radius:3px;transition:width 1s"></div></div>`;
+  heatmapEl.appendChild(barCell);
+
+  // Action
+  const [actionText, actionColor] = actionMap[row.label] || ['Review', '#888'];
+  const actionCell = document.createElement('div');
+  actionCell.className = 'hm-cell';
+  actionCell.style.cssText = `background:color-mix(in srgb, ${actionColor} 12%, white);color:${actionColor};font-size:10px;font-weight:700;letter-spacing:0.5px;padding:0 6px;text-align:center;`;
+  actionCell.textContent = actionText;
+  heatmapEl.appendChild(actionCell);
+});
+
+// ── 9. TIMELINE STACKED BAR ───────────────────────
+new Chart(document.getElementById('timeline'), {
+  type: 'bar',
+  data: {
+    labels: ['Jan W1\n(Jan 1–7)', 'Jan W2\n(Jan 8–14)', 'Jan W3\n(Jan 15–21)', 'Jan W4\n(Jan 22–28)', 'Feb W1\n(Jan 29–Feb 7)'],
+    datasets: [
+      {
+        label: 'Critical',
+        data: [0, 1, 0, 0, 1],
+        backgroundColor: palette.red,
+        borderRadius: 2,
+      },
+      {
+        label: 'High',
+        data: [2, 2, 2, 2, 3],
+        backgroundColor: palette.orange,
+        borderRadius: 2,
+      },
+      {
+        label: 'Medium',
+        data: [1, 1, 2, 3, 3],
+        backgroundColor: palette.yellow,
+        borderRadius: 2,
+      },
+      {
+        label: 'Low',
+        data: [0, 0, 0, 1, 1],
+        backgroundColor: palette.green,
+        borderRadius: 2,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    interaction: { mode: 'index', intersect: false },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          footer: items => `Total: ${items.reduce((s, i) => s + i.raw, 0)} cases`
+        }
+      }
+    },
+    scales: {
+      x: {
+        stacked: true,
+        grid: { display: false },
+        border: { display: false },
+        ticks: { font: { size: 11 } }
+      },
+      y: {
+        stacked: true,
+        grid: { color: '#f0ece4' },
+        border: { color: '#ddd' },
+        ticks: { stepSize: 2 },
+        beginAtZero: true,
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>

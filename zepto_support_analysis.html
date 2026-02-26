@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zepto Support Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #12121a;
+    --surface2: #1a1a26;
+    --border: #2a2a3d;
+    --accent: #7c5cfc;
+    --accent2: #fc5c7d;
+    --accent3: #5cf5a0;
+    --accent4: #fcb95c;
+    --text: #e8e8f0;
+    --muted: #6b6b88;
+    --critical: #fc5c7d;
+    --high: #fc8c5c;
+    --medium: #fcb95c;
+    --low: #5cf5a0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+      radial-gradient(ellipse at 20% 20%, rgba(124, 92, 252, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(252, 92, 125, 0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(92, 245, 160, 0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* HEADER */
+  header {
+    padding: 56px 0 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+    animation: fadeDown 0.7s ease both;
+  }
+
+  .header-eyebrow {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 2px;
+    background: var(--accent);
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -1px;
+  }
+
+  h1 span {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .header-meta {
+    margin-top: 16px;
+    color: var(--muted);
+    font-size: 14px;
+    display: flex;
+    gap: 24px;
+  }
+
+  .header-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* KPI STRIP */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+    animation: fadeUp 0.7s 0.1s ease both;
+  }
+
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .kpi:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+  }
+
+  .kpi::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--kpi-color, var(--accent));
+    border-radius: 0 0 16px 16px;
+  }
+
+  .kpi-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    font-weight: 500;
+  }
+
+  .kpi-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 38px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--kpi-color, var(--text));
+  }
+
+  .kpi-sub {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 6px;
+  }
+
+  /* GRID LAYOUT */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  /* CARDS */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card-title .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* BAR CHARTS */
+  .bar-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .bar-item { }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+  }
+
+  .bar-label {
+    font-size: 12px;
+    color: var(--text);
+    width: 180px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 8px;
+    background: var(--surface2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    width: 0;
+    transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .bar-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    width: 24px;
+    text-align: right;
+  }
+
+  /* DONUT */
+  .donut-wrap {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .donut-svg { flex-shrink: 0; }
+
+  .donut-legend { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .legend-pct {
+    margin-left: auto;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  /* SENTIMENT GAUGE */
+  .gauge-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .csat-big {
+    font-family: 'Syne', sans-serif;
+    font-size: 72px;
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent4), var(--accent3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .csat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  .star-row { display: flex; gap: 4px; margin: 4px 0; }
+
+  .star { font-size: 18px; }
+
+  .csat-bars {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 12px;
+  }
+
+  .csat-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .csat-star-label { width: 40px; color: var(--muted); }
+
+  .csat-track {
+    flex: 1;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .csat-fill {
+    height: 100%;
+    border-radius: 99px;
+    width: 0;
+    transition: width 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .csat-n { width: 20px; text-align: right; color: var(--muted); }
+
+  /* THEMES SECTION */
+  .themes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .theme-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px;
+    border-left: 3px solid var(--theme-color, var(--accent));
+    transition: transform 0.2s;
+  }
+
+  .theme-card:hover { transform: translateX(4px); }
+
+  .theme-card h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--theme-color, var(--text));
+  }
+
+  .theme-card p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .theme-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    background: color-mix(in srgb, var(--theme-color, var(--accent)) 20%, transparent);
+    color: var(--theme-color, var(--accent));
+  }
+
+  /* CRITICAL TABLE */
+  .critical-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .critical-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid color-mix(in srgb, var(--accent2) 20%, transparent);
+    transition: border-color 0.2s;
+  }
+
+  .critical-row:hover { border-color: var(--accent2); }
+
+  .critical-id {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    width: 72px;
+    flex-shrink: 0;
+  }
+
+  .critical-content { flex: 1; min-width: 0; }
+
+  .critical-product { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .critical-issue { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .priority-badge {
+    padding: 3px 10px;
+    border-radius: 99px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  .p-critical { background: rgba(252,92,125,0.15); color: var(--critical); }
+  .p-high { background: rgba(252,140,92,0.15); color: var(--high); }
+  .p-medium { background: rgba(252,185,92,0.15); color: var(--medium); }
+  .p-low { background: rgba(92,245,160,0.15); color: var(--low); }
+
+  /* RECOMMENDATIONS */
+  .rec-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .rec-item {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: var(--surface2);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .rec-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--border);
+    line-height: 1;
+    flex-shrink: 0;
+    width: 32px;
+  }
+
+  .rec-content h4 {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .rec-content p { font-size: 12px; color: var(--muted); line-height: 1.6; }
+
+  /* SENTIMENT SUMMARY */
+  .sentiment-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .sentiment-pill {
+    flex: 1;
+    padding: 14px 18px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid;
+  }
+
+  .sentiment-pill .s-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 4px; }
+  .sentiment-pill .s-val { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .card:nth-child(1) { animation-delay: 0.1s; }
+  .card:nth-child(2) { animation-delay: 0.2s; }
+  .card:nth-child(3) { animation-delay: 0.3s; }
+
+  .full-width { grid-column: 1 / -1; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+    margin-top: 48px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="header-eyebrow">Zepto Customer Support Intelligence</div>
+    <h1>Support Case<br><span>Analysis Report</span></h1>
+    <div class="header-meta">
+      <span>📅 Jan 3 – Feb 7, 2025</span>
+      <span>📦 25 Cases Analyzed</span>
+      <span>🗂️ Hair Care & Personal Hygiene</span>
+    </div>
+  </header>
+
+  <!-- KPI Strip -->
+  <div class="kpi-strip">
+    <div class="kpi" style="--kpi-color: #7c5cfc">
+      <div class="kpi-label">Total Cases</div>
+      <div class="kpi-value">25</div>
+      <div class="kpi-sub">Jan–Feb 2025</div>
+    </div>
+    <div class="kpi" style="--kpi-color: #5cf5a0">
+      <div class="kpi-label">Resolution Rate</div>
+      <div class="kpi-value">76%</div>
+      <div class="kpi-sub">19 of 25 resolved</div>
+    </div>
+    <div class="kpi" style="--kpi-color: #fcb95c">
+      <div class="kpi-label">Avg. CSAT</div>
+      <div class="kpi-value">3.76</div>
+      <div class="kpi-sub">out of 5.0</div>
+    </div>
+    <div class="kpi" style="--kpi-color: #fc5c7d">
+      <div class="kpi-label">Escalated</div>
+      <div class="kpi-value">3</div>
+      <div class="kpi-sub">Critical safety issues</div>
+    </div>
+    <div class="kpi" style="--kpi-color: #fc8c5c">
+      <div class="kpi-label">High Priority</div>
+      <div class="kpi-value">11</div>
+      <div class="kpi-sub">44% of all cases</div>
+    </div>
+  </div>
+
+  <!-- Row 1 -->
+  <div class="grid-2" style="margin-bottom:24px;">
+
+    <!-- Issue Types -->
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Top Issue Categories</div>
+      <div class="bar-list" id="issue-bars">
+        <!-- Grouped clusters -->
+      </div>
+    </div>
+
+    <!-- Priority + Status Donuts -->
+    <div style="display:flex;flex-direction:column;gap:24px;">
+      <div class="card" style="flex:1;">
+        <div class="card-title"><span class="dot" style="background:var(--accent2)"></span>Priority Breakdown</div>
+        <div class="donut-wrap">
+          <svg class="donut-svg" width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#1a1a26" stroke-width="14"/>
+            <!-- Low 8% -->
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#5cf5a0" stroke-width="14"
+              stroke-dasharray="19 220" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+            <!-- Medium 40% -->
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#fcb95c" stroke-width="14"
+              stroke-dasharray="95 144" stroke-dashoffset="-19" transform="rotate(-90 50 50)"/>
+            <!-- High 44% -->
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#fc8c5c" stroke-width="14"
+              stroke-dasharray="104 135" stroke-dashoffset="-114" transform="rotate(-90 50 50)"/>
+            <!-- Critical 8% -->
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#fc5c7d" stroke-width="14"
+              stroke-dasharray="19 220" stroke-dashoffset="-218" transform="rotate(-90 50 50)"/>
+          </svg>
+          <div class="donut-legend">
+            <div class="legend-item"><span class="legend-dot" style="background:#fc5c7d"></span>Critical<span class="legend-pct" style="color:#fc5c7d">8%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#fc8c5c"></span>High<span class="legend-pct" style="color:#fc8c5c">44%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#fcb95c"></span>Medium<span class="legend-pct" style="color:#fcb95c">40%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#5cf5a0"></span>Low<span class="legend-pct" style="color:#5cf5a0">8%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="flex:1;">
+        <div class="card-title"><span class="dot" style="background:var(--accent3)"></span>Case Status</div>
+        <div class="donut-wrap">
+          <svg class="donut-svg" width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#1a1a26" stroke-width="14"/>
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#5cf5a0" stroke-width="14"
+              stroke-dasharray="179 60" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#7c5cfc" stroke-width="14"
+              stroke-dasharray="45 195" stroke-dashoffset="-179" transform="rotate(-90 50 50)"/>
+            <circle cx="50" cy="50" r="38" fill="none" stroke="#fc5c7d" stroke-width="14"
+              stroke-dasharray="28 211" stroke-dashoffset="-224" transform="rotate(-90 50 50)"/>
+          </svg>
+          <div class="donut-legend">
+            <div class="legend-item"><span class="legend-dot" style="background:#5cf5a0"></span>Resolved<span class="legend-pct" style="color:#5cf5a0">76%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#7c5cfc"></span>Closed<span class="legend-pct" style="color:#7c5cfc">12%</span></div>
+            <div class="legend-item"><span class="legend-dot" style="background:#fc5c7d"></span>Escalated<span class="legend-pct" style="color:#fc5c7d">12%</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Row 2: CSAT + Themes -->
+  <div class="grid-2" style="margin-bottom:24px;">
+
+    <!-- CSAT -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:#fcb95c"></span>Customer Satisfaction</div>
+      <div class="gauge-wrap">
+        <div class="csat-big">3.76</div>
+        <div class="csat-label">Average CSAT Score</div>
+        <div class="star-row">
+          <span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span><span class="star" style="opacity:0.5">⭐</span><span class="star" style="opacity:0.3">⭐</span>
+        </div>
+        <div class="csat-bars">
+          <div class="csat-row">
+            <div class="csat-star-label">5 ⭐</div>
+            <div class="csat-track"><div class="csat-fill" style="width:0;--w:100%;background:linear-gradient(90deg,#5cf5a0,#7c5cfc)" data-w="100"></div></div>
+            <div class="csat-n">5</div>
+          </div>
+          <div class="csat-row">
+            <div class="csat-star-label">4 ⭐</div>
+            <div class="csat-track"><div class="csat-fill" style="width:0;background:linear-gradient(90deg,#7c5cfc,#5c7cfc)" data-w="240"></div></div>
+            <div class="csat-n">12</div>
+          </div>
+          <div class="csat-row">
+            <div class="csat-star-label">3 ⭐</div>
+            <div class="csat-track"><div class="csat-fill" style="width:0;background:linear-gradient(90deg,#fcb95c,#fc8c5c)" data-w="100"></div></div>
+            <div class="csat-n">5</div>
+          </div>
+          <div class="csat-row">
+            <div class="csat-star-label">2 ⭐</div>
+            <div class="csat-track"><div class="csat-fill" style="width:0;background:linear-gradient(90deg,#fc5c7d,#fc5c5c)" data-w="60"></div></div>
+            <div class="csat-n">3</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--border);">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;font-weight:600;">CSAT by Priority Level</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="background:rgba(252,92,125,0.08);border-radius:10px;padding:12px;border:1px solid rgba(252,92,125,0.2);">
+            <div style="font-size:10px;color:#fc5c7d;text-transform:uppercase;letter-spacing:1px;">Critical</div>
+            <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fc5c7d;">2.0</div>
+          </div>
+          <div style="background:rgba(252,140,92,0.08);border-radius:10px;padding:12px;border:1px solid rgba(252,140,92,0.2);">
+            <div style="font-size:10px;color:#fc8c5c;text-transform:uppercase;letter-spacing:1px;">High</div>
+            <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fc8c5c;">4.0</div>
+          </div>
+          <div style="background:rgba(252,185,92,0.08);border-radius:10px;padding:12px;border:1px solid rgba(252,185,92,0.2);">
+            <div style="font-size:10px;color:#fcb95c;text-transform:uppercase;letter-spacing:1px;">Medium</div>
+            <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fcb95c;">3.9</div>
+          </div>
+          <div style="background:rgba(92,245,160,0.08);border-radius:10px;padding:12px;border:1px solid rgba(92,245,160,0.2);">
+            <div style="font-size:10px;color:#5cf5a0;text-transform:uppercase;letter-spacing:1px;">Low</div>
+            <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#5cf5a0;">3.5</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Common Themes -->
+    <div class="card">
+      <div class="card-title"><span class="dot" style="background:#5cf5a0"></span>Common Issue Themes</div>
+      <div class="themes-grid">
+        <div class="theme-card" style="--theme-color:#fc8c5c">
+          <div class="theme-badge">8 Cases · 32%</div>
+          <h3>🚚 Fulfillment Errors</h3>
+          <p>Wrong items, missing products, wrong variants — the #1 cluster driven by warehouse pick & SKU mapping failures.</p>
+        </div>
+        <div class="theme-card" style="--theme-color:#fc5c7d">
+          <div class="theme-badge">5 Cases · 20%</div>
+          <h3>📦 Packaging & Transit</h3>
+          <p>Damaged, leaking, melted, or defective packaging across both hair care and hygiene products.</p>
+        </div>
+        <div class="theme-card" style="--theme-color:#fc5c7d">
+          <div class="theme-badge">3 Cases · 12%</div>
+          <h3>⚠️ Safety & Authenticity</h3>
+          <p>Allergic reactions (2 cases), counterfeit concerns, and tampered seals — all escalated with adverse reports filed.</p>
+        </div>
+        <div class="theme-card" style="--theme-color:#7c5cfc">
+          <div class="theme-badge">4 Cases · 16%</div>
+          <h3>💻 App & Billing Issues</h3>
+          <p>Pricing discrepancies, duplicate charges, faulty cancel windows, and broken return flows — all tech/UX bugs.</p>
+        </div>
+        <div class="theme-card" style="--theme-color:#fcb95c">
+          <div class="theme-badge">3 Cases · 12%</div>
+          <h3>🏷️ Product Quality</h3>
+          <p>Short-dated stock, quantity underfills, and product efficacy complaints — quality control gaps at source.</p>
+        </div>
+        <div class="theme-card" style="--theme-color:#5cf5a0">
+          <div class="theme-badge">2 Cases · 8%</div>
+          <h3>📋 Listing Accuracy</h3>
+          <p>Misleading descriptions, incorrect MRP display, and outdated packaging info causing customer confusion.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Critical & Escalated Cases -->
+  <div class="card full-width" style="margin-bottom:24px;">
+    <div class="card-title"><span class="dot" style="background:#fc5c7d"></span>Critical & Escalated Cases — Immediate Attention Required</div>
+    <div class="critical-list">
+      <div class="critical-row">
+        <div class="critical-id">ZPT-1007</div>
+        <div class="critical-content">
+          <div class="critical-product">Dove Hair Fall Rescue Conditioner 175ml</div>
+          <div class="critical-issue">Allergic Reaction → Severe scalp itching & redness after use. Adverse event report filed.</div>
+        </div>
+        <span class="priority-badge p-critical">Critical</span>
+        <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fc5c7d;width:40px;text-align:right;">2.0 ★</span>
+      </div>
+      <div class="critical-row">
+        <div class="critical-id">ZPT-1018</div>
+        <div class="critical-content">
+          <div class="critical-product">Chandrika Ayurvedic Soap 3x125g + 1x75g</div>
+          <div class="critical-issue">Skin Irritation in Child → Patchouli oil reaction. Pediatrician advised. Warning label review recommended.</div>
+        </div>
+        <span class="priority-badge p-critical">Critical</span>
+        <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fc5c7d;width:40px;text-align:right;">2.0 ★</span>
+      </div>
+      <div class="critical-row">
+        <div class="critical-id">ZPT-1010</div>
+        <div class="critical-content">
+          <div class="critical-product">Parachute 100% Pure Coconut Oil 200ml</div>
+          <div class="critical-issue">Counterfeit Product Concern → Packaging discrepancy. Supplier audit initiated. Product recalled.</div>
+        </div>
+        <span class="priority-badge p-high">Escalated</span>
+        <span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#fc5c7d;width:40px;text-align:right;">2.0 ★</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Root Cause Analysis -->
+  <div class="card full-width" style="margin-bottom:24px;">
+    <div class="card-title"><span class="dot" style="background:#fcb95c"></span>Root Cause Analysis — Where Issues Originate</div>
+    <div class="bar-list" id="root-bars">
+      <div class="bar-item">
+        <div class="bar-row">
+          <span class="bar-label" style="width:220px">Warehouse / Fulfillment</span>
+          <div class="bar-track"><div class="bar-fill" data-w="80"></div></div>
+          <span class="bar-count">8</span>
+        </div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-row">
+          <span class="bar-label" style="width:220px">Packaging Quality</span>
+          <div class="bar-track"><div class="bar-fill" data-w="50" style="background:linear-gradient(90deg,#fc5c7d,#fc8c5c)"></div></div>
+          <span class="bar-count">5</span>
+        </div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-row">
+          <span class="bar-label" style="width:220px">App / Tech Bugs</span>
+          <div class="bar-track"><div class="bar-fill" data-w="40" style="background:linear-gradient(90deg,#7c5cfc,#5c9cfc)"></div></div>
+          <span class="bar-count">4</span>
+        </div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-row">
+          <span class="bar-label" style="width:220px">Supplier / Product Quality</span>
+          <div class="bar-track"><div class="bar-fill" data-w="40" style="background:linear-gradient(90deg,#fcb95c,#fc8c5c)"></div></div>
+          <span class="bar-count">4</span>
+        </div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-row">
+          <span class="bar-label" style="width:220px">Catalog / Listing Issues</span>
+          <div class="bar-track"><div class="bar-fill" data-w="30" style="background:linear-gradient(90deg,#5cf5a0,#5cf5d0)"></div></div>
+          <span class="bar-count">3</span>
+        </div>
+      </div>
+      <div class="bar-item">
+        <div class="bar-row">
+          <span class="bar-label" style="width:220px">Safety / Adverse Events</span>
+          <div class="bar-track"><div class="bar-fill" data-w="20" style="background:linear-gradient(90deg,#fc5c7d,#fc5c5c)"></div></div>
+          <span class="bar-count">2</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recommendations -->
+  <div class="card full-width">
+    <div class="card-title"><span class="dot" style="background:#7c5cfc"></span>Strategic Recommendations</div>
+    <div class="rec-list">
+      <div class="rec-item">
+        <div class="rec-number">01</div>
+        <div class="rec-content">
+          <h4>Overhaul Warehouse SKU Mapping & Pick Verification</h4>
+          <p>With 8 cases (32%) stemming from wrong items, missing products, or variant mix-ups, a barcode scan-verify step at pick time is critical. Implement double-confirmation for variant-heavy SKUs like Parachute 200ml vs 300ml and Dettol 675ml vs 1.35L.</p>
+        </div>
+      </div>
+      <div class="rec-item">
+        <div class="rec-number">02</div>
+        <div class="rec-content">
+          <h4>Establish a Safety & Adverse Event Fast-Track Protocol</h4>
+          <p>The three escalated cases (allergic reactions, counterfeit) scored a CSAT of 2.0 — the lowest in the dataset. A dedicated safety response team with sub-2-hour acknowledgment SLAs and auto-triggered regulatory filing would reduce risk and rebuild trust.</p>
+        </div>
+      </div>
+      <div class="rec-item">
+        <div class="rec-number">03</div>
+        <div class="rec-content">
+          <h4>Fix App & Billing Bugs as Priority Tech Debt</h4>
+          <p>Four cases were caused by app failures: stale flash sale prices, duplicate payment charges, broken cancel windows, and incorrect return date displays. These are trust-destroying experiences. A dedicated bug triage sprint is recommended.</p>
+        </div>
+      </div>
+      <div class="rec-item">
+        <div class="rec-number">04</div>
+        <div class="rec-content">
+          <h4>Upgrade Packaging Standards for Liquid & Fragile Products</h4>
+          <p>Leaking refill packs, crushed tubes, melted soap bars, and broken lids indicate packaging specs are insufficient for last-mile courier handling. Conduct drop and heat-stress testing on all liquid SKUs and add "fragile" handling flags.</p>
+        </div>
+      </div>
+      <div class="rec-item">
+        <div class="rec-number">05</div>
+        <div class="rec-content">
+          <h4>Improve Product Listing Accuracy & "New Look" Alerts</h4>
+          <p>Misleading descriptions, MRP mismatches on bundles, and old packaging images generated 3 cases and customer mistrust. A quarterly catalog audit with supplier-verified content and "Updated Packaging" labels would reduce confusion significantly.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Generated by Claude AI · Zepto Customer Support Intelligence · 25 Cases · Jan–Feb 2025
+  </footer>
+
+</div>
+
+<script>
+  // Animate bars on load
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.querySelectorAll('.bar-fill, .csat-fill').forEach(el => {
+        const w = el.dataset.w;
+        if (w) el.style.width = w + 'px';
+      });
+      // Animate CSAT fill bars
+      const csatFills = document.querySelectorAll('.csat-fill');
+      const maxCsatW = 240;
+      [100, 240, 100, 60].forEach((px, i) => {
+        if (csatFills[i]) csatFills[i].style.width = (px / maxCsatW * 100) + '%';
+      });
+    }, 200);
+  });
+
+  // Build root bars
+  const rootBars = document.getElementById('root-bars');
+  const maxVal = 8;
+  // already built inline above
+
+  // Intersection observer for cards
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+        e.target.querySelectorAll('.bar-fill').forEach(b => {
+          const w = b.dataset.w;
+          if (w) b.style.width = w + 'px';
+        });
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.card').forEach(c => {
+    observer.observe(c);
+  });
+</script>
+</body>
+</html>
