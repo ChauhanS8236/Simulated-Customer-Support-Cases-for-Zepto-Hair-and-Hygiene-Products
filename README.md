@@ -187,5 +187,5 @@ Transform reactive support into proactive intelligence
 
 Show what the dashboard looks like. - ![Alt text](https://github.com/ChauhanS8236/Simulated-Customer-Support-Cases-for-Zepto-Hair-and-Hygiene-Products/blob/main/Support%20Cases.png)
 Example: ![Dashboard Preview] (https://github.com/ChauhanS8236/Simulated-Customer-Support-Cases-for-Zepto-Hair-and-Hygiene-Products/blob/main/Support%20Cases.png) 
-Show what the dashboard looks like. - ![Alt text](https://github.com/ChauhanS8236/Simulated-Customer-Support-Cases-for-Zepto-Hair-and-Hygiene-Products/blob/main/Support%20Cases.png)
-Example: ![Dashboard Preview] (https://github.com/ChauhanS8236/Simulated-Customer-Support-Cases-for-Zepto-Hair-and-Hygiene-Products/blob/main/Support%20Cases.png) 
+Show what the dashboard looks like. - ![Alt text](https://github.com/ChauhanS8236/Simulated-Customer-Support-Cases-for-Zepto-Hair-and-Hygiene-Products/blob/main/Customer%20Support%20Findings.png)
+Example: ![Dashboard Preview] (https://github.com/ChauhanS8236/Simulated-Customer-Support-Cases-for-Zepto-Hair-and-Hygiene-Products/blob/main/Customer%20Support%20Findings.png) 
