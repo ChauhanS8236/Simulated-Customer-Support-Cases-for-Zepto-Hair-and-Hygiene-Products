@@ -1,5 +1,6 @@
 📊 Project Title: Simulated Customer Support Cases for Zepto Hair & Hygiene Products
 This project simulates real-world customer support cases for Zepto Hair and Hygiene Products, covering inquiries, complaints, returns, and product feedback. It models ticket categorization, response workflows, SLA tracking, and resolution analysis to improve service efficiency, customer satisfaction, and data-driven support optimization.
+
 📝 Description
 This project analyzes simulated customer support cases for Zepto’s Hair Care and Personal Hygiene product categories. The objective is to identify recurring issue themes, customer satisfaction patterns, operational bottlenecks, and root causes behind escalated cases.
 The analysis is presented through interactive visual dashboards and an executive-style insights report covering case distribution, CSAT trends, fulfillment errors, packaging issues, and priority breakdowns.
@@ -11,6 +12,7 @@ Claude AI
 SQL 
 Power Quaery
 DAX
+
 📂 Data Source
 The dataset is a simulated support case dataset containing 25 structured customer complaints across:
 Hair Care products
@@ -44,6 +46,7 @@ Features / Highlights
 
 🚨 Escalated & critical case spotlight
 
+
 💼 Business Problem
 
 Zepto’s customer support team is handling increasing complaints across hair and hygiene categories.
@@ -61,6 +64,7 @@ Where escalations originate
 Which cases pose brand or safety risk
 
 Without structured analytics, leadership cannot prioritize corrective actions effectively.
+
 
 🎯 Goal of Dashboard
 
