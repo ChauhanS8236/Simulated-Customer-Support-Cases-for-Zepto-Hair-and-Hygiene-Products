@@ -184,3 +184,5 @@ Identify brand risk early
 Support data-driven decision making
 
 Transform reactive support into proactive intelligence
+
+Show what the dashboard looks like.
